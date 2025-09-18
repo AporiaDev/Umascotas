@@ -1,0 +1,13 @@
+package com.example.Umascota2;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class Umascota2Application {
+
+	public static void main(String[] args) {
+		SpringApplication.run(Umascota2Application.class, args);
+	}
+
+}
