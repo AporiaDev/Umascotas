@@ -1,4 +1,4 @@
-package com.example.Umascota2;
+package com.example.umascota;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

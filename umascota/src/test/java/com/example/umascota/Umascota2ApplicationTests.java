@@ -1,4 +1,4 @@
-package com.example.Umascota2;
+package com.example.umascota;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
