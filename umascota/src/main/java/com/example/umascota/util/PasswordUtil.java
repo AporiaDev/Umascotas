@@ -1,3 +1,5 @@
+package com.example.umascota.util;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 public class PasswordUtil {

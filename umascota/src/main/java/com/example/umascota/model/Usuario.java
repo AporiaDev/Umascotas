@@ -1,4 +1,4 @@
-package com.example.umascota;
+package com.example.umascota.model;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;

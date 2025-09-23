@@ -1,4 +1,4 @@
-package com.example.umascota;
+package com.example.umascota.model;
 
 public enum TipoUsuario {
     ADOPTANTE,

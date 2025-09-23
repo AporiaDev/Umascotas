@@ -20,8 +20,8 @@ public class UsuarioService {
     }
 
     // Validar login
-    public boolean validarLogin(String username, String password) {
-        Usuario usuarioDB = usuarioRepository.findByUsername(username);
+    public boolean validarLogin(String correoElectronico, String password) {
+        Usuario usuarioDB = usuarioRepository.findByCorreoElectronico(correoElectronico);
         return usuarioDB != null && PasswordUtil.verificar(password, usuarioDB.getContrasena());
     }
 }

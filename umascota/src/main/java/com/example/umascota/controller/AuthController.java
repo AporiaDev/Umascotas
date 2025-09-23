@@ -6,7 +6,7 @@ import com.example.umascota.model.Usuario;
 import com.example.umascota.service.UsuarioService;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/papu")
 public class AuthController {
 
     @Autowired
@@ -22,10 +22,10 @@ public class AuthController {
     // Login seguro
     @PostMapping("/login")
     public String login(@RequestBody Usuario user) {
-        boolean loginValido = usuarioService.validarLogin(user.getNombreCompleto(), user.getContrasena());
+        boolean loginValido = usuarioService.validarLogin(user.getCorreoElectronico(), user.getContrasena());
 
         if (loginValido) {
-            return "Login exitoso. Bienvenido, " + user.getNombreCompleto();
+            return "Login exitoso. Bienvenido, " + user.getCorreoElectronico();
         } else {
             return "Usuario o contraseña incorrectos";
         }
