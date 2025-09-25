@@ -26,23 +26,36 @@
         </form>
     </div>
 
-    <script>
-    document.getElementById('loginForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
+<script>
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
 
-        const data = {
-            correoElectronico: e.target.correoElectronico.value,
-            contrasena: e.target.contrasena.value
-        };
+    // Obtener valores directamente usando querySelector
+    const correo = document.querySelector('input[name="correoElectronico"]').value;
+    const contrasena = document.querySelector('input[name="contrasena"]').value;
 
+    const data = {
+        correoElectronico: correo,
+        contrasena: contrasena
+    };
+
+    try {
         const response = await fetch('/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
 
+        if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+
         const result = await response.text();
-        alert(result);
+        alert("Respuesta del servidor: " + result);
+    } catch (error) {
+        console.error("Error en la petición:", error);
+        alert("Hubo un problema con el login: " + error.message);
+    }
     });
     </script>
 </body>
