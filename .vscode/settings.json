@@ -1,3 +1,4 @@
 {
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "livePreview.defaultPreviewPath": "/umascota/src/main/resources/templates/view/home.html"
 }

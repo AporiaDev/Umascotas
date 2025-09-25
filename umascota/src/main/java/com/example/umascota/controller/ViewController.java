@@ -5,24 +5,25 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
+
 public class ViewController {
 
     // Página principal para elegir login o registro
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("mensaje", "Bienvenido a U-Mascota");
-        return "home"; // templates/home.html
+        return "view/home"; // templates/home.html
     }
 
     // Vista de login
     @GetMapping("/login")
     public String login() {
-        return "login"; // templates/login.html
+        return "view/login"; // templates/login.html
     }
 
     // Vista de registro
-    @GetMapping("/register")
+    @GetMapping("/registro")
     public String register() {
-        return "register"; // templates/register.html
+        return "view/register"; // templates/register.html
     }
 }

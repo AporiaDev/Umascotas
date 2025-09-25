@@ -6,14 +6,14 @@ import com.example.umascota.model.Usuario;
 import com.example.umascota.service.UsuarioService;
 
 @RestController
-@RequestMapping("/papu")
+@RequestMapping("/auth")
 public class AuthController {
 
     @Autowired
     private UsuarioService usuarioService;
 
     // Registro de usuario
-    @PostMapping("/register")
+    @PostMapping("/registro")
     public String register(@RequestBody Usuario user) {
         usuarioService.registrarUsuario(user);
         return "Usuario registrado con éxito";
