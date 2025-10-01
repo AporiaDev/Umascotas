@@ -26,4 +26,9 @@ public class ViewController {
     public String register() {
         return "view/register"; // templates/register.html
     }
+
+    @GetMapping("/mascotas")
+    public String mascotas() {
+        return "view/mascotas"; // busca mascotas.html en /templates
+    }
 }
