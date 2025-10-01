@@ -1,13 +1,19 @@
 package com.example.umascota.util;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 public class PasswordUtil {
-    private static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-    public static String encriptar(String password) {
-        return encoder.encode(password);
+
+    private static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    // Encriptar contraseña
+    public static String hash(String password) {
+        return passwordEncoder.encode(password);
     }
-    public static boolean verificar(String password, String hash) {
-        return encoder.matches(password, hash);
+
+    // Verificar contraseña
+    public static boolean verificar(String rawPassword, String hashedPassword) {
+        return passwordEncoder.matches(rawPassword, hashedPassword);
     }
 }
