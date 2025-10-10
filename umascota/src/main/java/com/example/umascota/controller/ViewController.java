@@ -31,4 +31,21 @@ public class ViewController {
     public String mascotas() {
         return "view/mascotas"; // busca mascotas.html en /templates
     }
+
+    @GetMapping("/jwt")
+    public String jwtDemo() {
+        return "view/jwt";
+    }
+
+    // Vista para crear mascotas
+    @GetMapping("/crear-mascota")
+    public String crearMascota() {
+        return "view/crear-mascota";
+    }
+
+    // Vista para listar todas las mascotas
+    @GetMapping("/listar-mascotas")
+    public String listarMascotas() {
+        return "view/listar-mascotas";
+    }
 }

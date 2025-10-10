@@ -32,6 +32,12 @@ public class MascotaController {
     // Crear una mascota
     @PostMapping
     public Mascota createMascota(@RequestBody Mascota mascota) {
+        if (mascota.getEstadoPublicacion() == null) {
+            mascota.setEstadoPublicacion(Mascota.EstadoPublicacion.disponible);
+        }
+        if (mascota.getIdUsuarioPublica() == null) {
+            mascota.setIdUsuarioPublica(1L);
+        }
         return mascotaRepository.save(mascota);
     }
 
