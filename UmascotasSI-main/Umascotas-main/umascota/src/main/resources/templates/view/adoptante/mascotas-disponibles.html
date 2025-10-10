@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista de Mascotas - U-Mascota</title>
+    <title>Mascotas Disponibles - U-Mascota</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -18,12 +18,18 @@
                     </a>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="/crear-mascota" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                        <i class="fas fa-plus mr-1"></i>Nueva Mascota
+                    <span class="text-gray-700">
+                        <i class="fas fa-user mr-1"></i>Adoptante
+                    </span>
+                    <a href="/adoptante/perfil" class="text-gray-700 hover:text-blue-600">
+                        <i class="fas fa-user-circle mr-1"></i>Mi Perfil
                     </a>
-                    <a href="/" class="text-gray-700 hover:text-blue-600">
-                        <i class="fas fa-home mr-1"></i>Inicio
+                    <a href="/adoptante/mis-solicitudes" class="text-gray-700 hover:text-blue-600">
+                        <i class="fas fa-heart mr-1"></i>Mis Solicitudes
                     </a>
+                    <button onclick="cerrarSesion()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Cerrar Sesión
+                    </button>
                 </div>
             </div>
         </div>
@@ -34,18 +40,14 @@
         <div class="bg-white rounded-2xl shadow-xl p-8">
             <div class="flex justify-between items-center mb-8">
                 <h1 class="text-3xl font-bold text-gray-800">
-                    <i class="fas fa-list text-blue-600 mr-3"></i>
-                    Lista de Mascotas
+                    <i class="fas fa-heart text-pink-600 mr-3"></i>
+                    Mascotas Disponibles para Adopción
                 </h1>
                 <div class="flex space-x-4">
                     <button onclick="cargarMascotas()" 
                             class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
                         <i class="fas fa-refresh mr-1"></i>Actualizar
                     </button>
-                    <a href="/crear-mascota" 
-                       class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                        <i class="fas fa-plus mr-1"></i>Nueva Mascota
-                    </a>
                 </div>
             </div>
 
@@ -68,15 +70,16 @@
                         </select>
                     </div>
                     <div>
-                        <label for="filtroEstado" class="block text-sm font-medium text-gray-700 mb-2">
-                            <i class="fas fa-info-circle mr-1"></i>Filtrar por Estado
+                        <label for="filtroEdad" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-calendar-alt mr-1"></i>Filtrar por Edad
                         </label>
-                        <select id="filtroEstado" onchange="filtrarMascotas()"
+                        <select id="filtroEdad" onchange="filtrarMascotas()"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                            <option value="">Todos los estados</option>
-                            <option value="disponible">Disponible</option>
-                            <option value="adoptado">Adoptado</option>
-                            <option value="pendiente">Pendiente</option>
+                            <option value="">Todas las edades</option>
+                            <option value="0-1">0-1 años</option>
+                            <option value="1-3">1-3 años</option>
+                            <option value="3-5">3-5 años</option>
+                            <option value="5+">5+ años</option>
                         </select>
                     </div>
                     <div>
@@ -110,17 +113,13 @@
             <!-- Mensaje cuando no hay mascotas -->
             <div id="sinMascotas" class="text-center py-12 hidden">
                 <i class="fas fa-paw text-6xl text-gray-300 mb-4"></i>
-                <h3 class="text-xl font-semibold text-gray-600 mb-2">No hay mascotas registradas</h3>
-                <p class="text-gray-500 mb-6">¡Sé el primero en registrar una mascota!</p>
-                <a href="/crear-mascota" 
-                   class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
-                    <i class="fas fa-plus mr-2"></i>Crear Primera Mascota
-                </a>
+                <h3 class="text-xl font-semibold text-gray-600 mb-2">No hay mascotas disponibles</h3>
+                <p class="text-gray-500 mb-6">¡Vuelve pronto para ver nuevas mascotas en adopción!</p>
             </div>
         </div>
     </div>
 
-    <!-- Modal para ver detalles -->
+    <!-- Modal para ver detalles y solicitar adopción -->
     <div id="modalDetalles" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -141,9 +140,15 @@
 
     <script>
         let todasLasMascotas = [];
+        let token = localStorage.getItem('jwt_token');
 
         // Cargar mascotas al cargar la página
         document.addEventListener('DOMContentLoaded', function() {
+            if (!token) {
+                alert('Debes iniciar sesión para ver las mascotas disponibles');
+                window.location.href = '/login';
+                return;
+            }
             cargarMascotas();
         });
 
@@ -151,12 +156,6 @@
         async function cargarMascotas() {
             mostrarLoading(true);
             ocultarError();
-            
-            const token = localStorage.getItem('jwt_token');
-            if (!token) {
-                mostrarError('Debes iniciar sesión para ver las mascotas');
-                return;
-            }
             
             try {
                 const response = await fetch('/api/mascotas', {
@@ -167,13 +166,14 @@
                 });
                 
                 if (response.ok) {
-                    todasLasMascotas = await response.json();
+                    const mascotas = await response.json();
+                    // Filtrar solo mascotas disponibles
+                    todasLasMascotas = mascotas.filter(mascota => mascota.estadoPublicacion === 'disponible');
                     mostrarMascotas(todasLasMascotas);
                 } else if (response.status === 401) {
-                    mostrarError('Sesión expirada. Por favor, inicia sesión nuevamente.');
-                    setTimeout(() => {
-                        window.location.href = '/login';
-                    }, 2000);
+                    alert('Sesión expirada. Por favor, inicia sesión nuevamente.');
+                    localStorage.removeItem('jwt_token');
+                    window.location.href = '/login';
                 } else {
                     mostrarError('Error al cargar las mascotas. Inténtalo de nuevo.');
                 }
@@ -201,18 +201,6 @@
 
         // Función para crear una tarjeta de mascota
         function crearTarjetaMascota(mascota) {
-            const estadoColor = {
-                'disponible': 'bg-green-100 text-green-800',
-                'adoptado': 'bg-blue-100 text-blue-800',
-                'pendiente': 'bg-yellow-100 text-yellow-800'
-            };
-
-            const estadoIcon = {
-                'disponible': 'fas fa-check-circle',
-                'adoptado': 'fas fa-heart',
-                'pendiente': 'fas fa-clock'
-            };
-
             return `
                 <div class="bg-white border border-gray-200 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
                     <div class="relative">
@@ -223,9 +211,9 @@
                             </div>`
                         }
                         <div class="absolute top-2 right-2">
-                            <span class="px-2 py-1 rounded-full text-xs font-medium ${estadoColor[mascota.estadoPublicacion]}">
-                                <i class="${estadoIcon[mascota.estadoPublicacion]} mr-1"></i>
-                                ${mascota.estadoPublicacion.charAt(0).toUpperCase() + mascota.estadoPublicacion.slice(1)}
+                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <i class="fas fa-heart mr-1"></i>
+                                Disponible
                             </span>
                         </div>
                     </div>
@@ -248,13 +236,9 @@
                                     class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 text-sm font-medium">
                                 <i class="fas fa-eye mr-1"></i>Ver Detalles
                             </button>
-                            <button onclick="editarMascota(${mascota.idMascota})" 
-                                    class="flex-1 bg-yellow-600 text-white py-2 px-4 rounded-lg hover:bg-yellow-700 text-sm font-medium">
-                                <i class="fas fa-edit mr-1"></i>Editar
-                            </button>
-                            <button onclick="eliminarMascota(${mascota.idMascota}, '${mascota.nombre}')" 
-                                    class="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 text-sm font-medium">
-                                <i class="fas fa-trash mr-1"></i>Eliminar
+                            <button onclick="solicitarAdopcion(${mascota.idMascota}, '${mascota.nombre}')" 
+                                    class="flex-1 bg-pink-600 text-white py-2 px-4 rounded-lg hover:bg-pink-700 text-sm font-medium">
+                                <i class="fas fa-heart mr-1"></i>Solicitar Adopción
                             </button>
                         </div>
                     </div>
@@ -265,18 +249,31 @@
         // Función para filtrar mascotas
         function filtrarMascotas() {
             const filtroEspecie = document.getElementById('filtroEspecie').value;
-            const filtroEstado = document.getElementById('filtroEstado').value;
+            const filtroEdad = document.getElementById('filtroEdad').value;
             const buscarNombre = document.getElementById('buscarNombre').value.toLowerCase();
 
             const mascotasFiltradas = todasLasMascotas.filter(mascota => {
                 const cumpleEspecie = !filtroEspecie || mascota.especie === filtroEspecie;
-                const cumpleEstado = !filtroEstado || mascota.estadoPublicacion === filtroEstado;
+                const cumpleEdad = !filtroEdad || cumpleFiltroEdad(mascota.edad, filtroEdad);
                 const cumpleNombre = !buscarNombre || mascota.nombre.toLowerCase().includes(buscarNombre);
                 
-                return cumpleEspecie && cumpleEstado && cumpleNombre;
+                return cumpleEspecie && cumpleEdad && cumpleNombre;
             });
 
             mostrarMascotas(mascotasFiltradas);
+        }
+
+        // Función auxiliar para filtrar por edad
+        function cumpleFiltroEdad(edad, filtro) {
+            if (!edad) return false;
+            
+            switch(filtro) {
+                case '0-1': return edad >= 0 && edad <= 1;
+                case '1-3': return edad > 1 && edad <= 3;
+                case '3-5': return edad > 3 && edad <= 5;
+                case '5+': return edad > 5;
+                default: return true;
+            }
         }
 
         // Función para ver detalles de una mascota
@@ -302,8 +299,7 @@
                         <div><strong>Raza:</strong> ${mascota.raza || 'No especificada'}</div>
                         <div><strong>Edad:</strong> ${mascota.edad ? mascota.edad + ' años' : 'No especificada'}</div>
                         <div><strong>Estado de Salud:</strong> ${mascota.estadoSalud || 'No especificada'}</div>
-                        <div><strong>Estado de Publicación:</strong> ${mascota.estadoPublicacion}</div>
-                        <div><strong>ID Usuario:</strong> ${mascota.idUsuarioPublica}</div>
+                        <div><strong>Estado:</strong> <span class="text-green-600 font-semibold">Disponible</span></div>
                     </div>
                     
                     ${mascota.descripcion ? 
@@ -312,6 +308,13 @@
                             <p class="mt-1 text-gray-700">${mascota.descripcion}</p>
                         </div>` : ''
                     }
+                    
+                    <div class="pt-4 border-t">
+                        <button onclick="solicitarAdopcion(${mascota.idMascota}, '${mascota.nombre}')" 
+                                class="w-full bg-pink-600 text-white py-3 px-4 rounded-lg hover:bg-pink-700 font-medium">
+                            <i class="fas fa-heart mr-2"></i>Solicitar Adopción de ${mascota.nombre}
+                        </button>
+                    </div>
                 </div>
             `;
             
@@ -323,43 +326,22 @@
             document.getElementById('modalDetalles').classList.add('hidden');
         }
 
-        // Función para editar mascota (placeholder)
-        function editarMascota(idMascota) {
-            alert('Función de edición en desarrollo. ID: ' + idMascota);
+        // Función para solicitar adopción
+        function solicitarAdopcion(idMascota, nombre) {
+            if (!confirm(`¿Estás seguro de que quieres solicitar la adopción de "${nombre}"?`)) {
+                return;
+            }
+
+            // Aquí implementarías la lógica para enviar la solicitud de adopción
+            alert(`Solicitud de adopción enviada para "${nombre}". Te contactaremos pronto.`);
+            cerrarModal();
         }
 
-        // Función para eliminar mascota
-        async function eliminarMascota(idMascota, nombre) {
-            if (!confirm(`¿Estás seguro de que quieres eliminar a "${nombre}"?`)) {
-                return;
-            }
-
-            const token = localStorage.getItem('jwt_token');
-            if (!token) {
-                alert('Debes iniciar sesión para realizar esta acción');
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/mascotas/${idMascota}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': 'Bearer ' + token,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (response.ok) {
-                    alert(`Mascota "${nombre}" eliminada exitosamente`);
-                    cargarMascotas(); // Recargar la lista
-                } else if (response.status === 401) {
-                    alert('Sesión expirada. Por favor, inicia sesión nuevamente.');
-                    window.location.href = '/login';
-                } else {
-                    alert('Error al eliminar la mascota');
-                }
-            } catch (error) {
-                alert('Error de conexión: ' + error.message);
+        // Función para cerrar sesión
+        function cerrarSesion() {
+            if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+                localStorage.removeItem('jwt_token');
+                window.location.href = '/login';
             }
         }
 

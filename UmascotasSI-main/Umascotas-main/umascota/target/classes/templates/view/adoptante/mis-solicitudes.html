@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Solicitudes - U-Mascota</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navegación -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="text-2xl font-bold text-blue-600">
+                        <i class="fas fa-paw mr-2"></i>U-Mascota
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-700">
+                        <i class="fas fa-user mr-1"></i>Adoptante
+                    </span>
+                    <a href="/adoptante/mascotas-disponibles" class="text-gray-700 hover:text-blue-600">
+                        <i class="fas fa-heart mr-1"></i>Mascotas Disponibles
+                    </a>
+                    <a href="/adoptante/perfil" class="text-gray-700 hover:text-blue-600">
+                        <i class="fas fa-user-circle mr-1"></i>Mi Perfil
+                    </a>
+                    <button onclick="cerrarSesion()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Cerrar Sesión
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido principal -->
+    <div class="max-w-7xl mx-auto py-8 px-4">
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800">
+                    <i class="fas fa-list text-blue-600 mr-3"></i>
+                    Mis Solicitudes de Adopción
+                </h1>
+                <div class="flex space-x-4">
+                    <button onclick="cargarSolicitudes()" 
+                            class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                        <i class="fas fa-refresh mr-1"></i>Actualizar
+                    </button>
+                    <a href="/adoptante/mascotas-disponibles" 
+                       class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                        <i class="fas fa-plus mr-1"></i>Nueva Solicitud
+                    </a>
+                </div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="filtroEstado" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-filter mr-1"></i>Filtrar por Estado
+                        </label>
+                        <select id="filtroEstado" onchange="filtrarSolicitudes()"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Todos los estados</option>
+                            <option value="pendiente">Pendiente</option>
+                            <option value="aprobada">Aprobada</option>
+                            <option value="rechazada">Rechazada</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="buscarMascota" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-search mr-1"></i>Buscar por Mascota
+                        </label>
+                        <input type="text" id="buscarMascota" onkeyup="filtrarSolicitudes()"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                               placeholder="Escribir nombre de mascota...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading spinner -->
+            <div id="loading" class="text-center py-8 hidden">
+                <i class="fas fa-spinner fa-spin text-4xl text-blue-600"></i>
+                <p class="mt-2 text-gray-600">Cargando solicitudes...</p>
+            </div>
+
+            <!-- Mensaje de error -->
+            <div id="errorMensaje" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <span id="errorTexto"></span>
+            </div>
+
+            <!-- Lista de solicitudes -->
+            <div id="solicitudesContainer" class="space-y-4">
+                <!-- Las solicitudes se cargarán aquí dinámicamente -->
+            </div>
+
+            <!-- Mensaje cuando no hay solicitudes -->
+            <div id="sinSolicitudes" class="text-center py-12 hidden">
+                <i class="fas fa-heart text-6xl text-gray-300 mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-600 mb-2">No tienes solicitudes de adopción</h3>
+                <p class="text-gray-500 mb-6">¡Explora las mascotas disponibles y envía tu primera solicitud!</p>
+                <a href="/adoptante/mascotas-disponibles" 
+                   class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+                    <i class="fas fa-heart mr-2"></i>Ver Mascotas Disponibles
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let todasLasSolicitudes = [];
+
+        // Cargar solicitudes al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('jwt_token');
+            if (!token) {
+                alert('Debes iniciar sesión para ver tus solicitudes');
+                window.location.href = '/login';
+                return;
+            }
+            cargarSolicitudes();
+        });
+
+        // Función para cargar solicitudes (placeholder - implementar con API real)
+        async function cargarSolicitudes() {
+            mostrarLoading(true);
+            ocultarError();
+            
+            try {
+                // Simular carga de solicitudes (reemplazar con API real)
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Datos de ejemplo
+                todasLasSolicitudes = [
+                    {
+                        id: 1,
+                        mascota: {
+                            nombre: "Max",
+                            especie: "Perro",
+                            raza: "Labrador",
+                            foto: null
+                        },
+                        estado: "pendiente",
+                        fechaSolicitud: "2024-01-15",
+                        mensaje: "Me encantaría adoptar a Max. Tengo experiencia con perros y un hogar amplio."
+                    },
+                    {
+                        id: 2,
+                        mascota: {
+                            nombre: "Luna",
+                            especie: "Gato",
+                            raza: "Siamés",
+                            foto: null
+                        },
+                        estado: "aprobada",
+                        fechaSolicitud: "2024-01-10",
+                        mensaje: "Solicitud aprobada. Contacta al publicador para coordinar la entrega."
+                    }
+                ];
+                
+                mostrarSolicitudes(todasLasSolicitudes);
+            } catch (error) {
+                mostrarError('Error al cargar las solicitudes: ' + error.message);
+            } finally {
+                mostrarLoading(false);
+            }
+        }
+
+        // Función para mostrar solicitudes
+        function mostrarSolicitudes(solicitudes) {
+            const container = document.getElementById('solicitudesContainer');
+            const sinSolicitudes = document.getElementById('sinSolicitudes');
+            
+            if (solicitudes.length === 0) {
+                container.innerHTML = '';
+                sinSolicitudes.classList.remove('hidden');
+                return;
+            }
+            
+            sinSolicitudes.classList.add('hidden');
+            container.innerHTML = solicitudes.map(solicitud => crearTarjetaSolicitud(solicitud)).join('');
+        }
+
+        // Función para crear una tarjeta de solicitud
+        function crearTarjetaSolicitud(solicitud) {
+            const estadoColor = {
+                'pendiente': 'bg-yellow-100 text-yellow-800',
+                'aprobada': 'bg-green-100 text-green-800',
+                'rechazada': 'bg-red-100 text-red-800'
+            };
+
+            const estadoIcon = {
+                'pendiente': 'fas fa-clock',
+                'aprobada': 'fas fa-check-circle',
+                'rechazada': 'fas fa-times-circle'
+            };
+
+            return `
+                <div class="bg-white border border-gray-200 rounded-xl shadow-lg p-6">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-paw text-2xl text-gray-400"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-xl font-bold text-gray-800">${solicitud.mascota.nombre}</h3>
+                                <p class="text-gray-600">${solicitud.mascota.especie} - ${solicitud.mascota.raza}</p>
+                                <p class="text-sm text-gray-500 mt-1">Solicitud enviada el ${solicitud.fechaSolicitud}</p>
+                                <p class="text-gray-700 mt-2">${solicitud.mensaje}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="px-3 py-1 rounded-full text-sm font-medium ${estadoColor[solicitud.estado]}">
+                                <i class="${estadoIcon[solicitud.estado]} mr-1"></i>
+                                ${solicitud.estado.charAt(0).toUpperCase() + solicitud.estado.slice(1)}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Función para filtrar solicitudes
+        function filtrarSolicitudes() {
+            const filtroEstado = document.getElementById('filtroEstado').value;
+            const buscarMascota = document.getElementById('buscarMascota').value.toLowerCase();
+
+            const solicitudesFiltradas = todasLasSolicitudes.filter(solicitud => {
+                const cumpleEstado = !filtroEstado || solicitud.estado === filtroEstado;
+                const cumpleMascota = !buscarMascota || solicitud.mascota.nombre.toLowerCase().includes(buscarMascota);
+                
+                return cumpleEstado && cumpleMascota;
+            });
+
+            mostrarSolicitudes(solicitudesFiltradas);
+        }
+
+        // Función para cerrar sesión
+        function cerrarSesion() {
+            if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+                localStorage.removeItem('jwt_token');
+                localStorage.removeItem('usuario');
+                window.location.href = '/login';
+            }
+        }
+
+        // Funciones auxiliares
+        function mostrarLoading(mostrar) {
+            document.getElementById('loading').classList.toggle('hidden', !mostrar);
+        }
+
+        function mostrarError(mensaje) {
+            document.getElementById('errorTexto').textContent = mensaje;
+            document.getElementById('errorMensaje').classList.remove('hidden');
+        }
+
+        function ocultarError() {
+            document.getElementById('errorMensaje').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

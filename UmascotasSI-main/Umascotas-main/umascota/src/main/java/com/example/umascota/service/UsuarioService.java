@@ -35,4 +35,9 @@ public class UsuarioService {
         return usuarioDB != null && PasswordUtil.verificar(password, usuarioDB.getContrasena());
     }
 
+    // Obtener usuario por correo electrónico
+    public Usuario findByCorreoElectronico(String correoElectronico) {
+        return usuarioRepository.findByCorreoElectronico(correoElectronico);
+    }
+
 }

@@ -152,11 +152,28 @@
             mostrarLoading(true);
             ocultarError();
             
+            const token = localStorage.getItem('jwt_token');
+            if (!token) {
+                mostrarError('Debes iniciar sesión para ver las mascotas');
+                return;
+            }
+            
             try {
-                const response = await fetch('/api/mascotas');
+                const response = await fetch('/api/mascotas', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
                 if (response.ok) {
                     todasLasMascotas = await response.json();
                     mostrarMascotas(todasLasMascotas);
+                } else if (response.status === 401) {
+                    mostrarError('Sesión expirada. Por favor, inicia sesión nuevamente.');
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 2000);
                 } else {
                     mostrarError('Error al cargar las mascotas. Inténtalo de nuevo.');
                 }
@@ -317,14 +334,27 @@
                 return;
             }
 
+            const token = localStorage.getItem('jwt_token');
+            if (!token) {
+                alert('Debes iniciar sesión para realizar esta acción');
+                return;
+            }
+
             try {
                 const response = await fetch(`/api/mascotas/${idMascota}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
                 });
 
                 if (response.ok) {
                     alert(`Mascota "${nombre}" eliminada exitosamente`);
                     cargarMascotas(); // Recargar la lista
+                } else if (response.status === 401) {
+                    alert('Sesión expirada. Por favor, inicia sesión nuevamente.');
+                    window.location.href = '/login';
                 } else {
                     alert('Error al eliminar la mascota');
                 }
