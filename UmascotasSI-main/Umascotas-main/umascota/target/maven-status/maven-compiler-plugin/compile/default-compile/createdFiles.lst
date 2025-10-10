@@ -1,4 +1,0 @@
-com\example\umascota\controller\AdoptanteController.class
-com\example\umascota\config\WebConfig.class
-com\example\umascota\filter\JwtAuthenticationFilter.class
-com\example\umascota\config\JwtConfig.class
